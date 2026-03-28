@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>CRFS TRADING · San Vicente HQ | Santa Maria, Bulacan — Pro Edition</title>
+    
+    <!-- Premium Fonts -->
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-deep: #0a5c2e;
+            --primary-strong: #228B4C;
+            --primary-glow: #2ecc71;
+            --gold-accent: #F5B042;
+            --gold-dark: #E67E22;
+            --route-red: #E53E3E;
+            --dark-charcoal: #1A2C2E;
+            --soft-gray: #5B6E6C;
+            --cream-bg: #FFFCF5;
+            --border-light: #EDF2F7;
+            --card-bg: #FFFFFF;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+            --shadow-lg: 0 20px 32px -12px rgba(0,0,0,0.14);
+            --shadow-xl: 0 25px 40px -12px rgba(0,0,0,0.2);
+        }
+
+        body {
+            font-family: 'Satoshi', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #F5F7F2;
+            overflow: hidden;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+
+        /* ORIGINAL HEADER STYLE - RESTORED */
+        .crfs-header {
+            background: linear-gradient(115deg, #0A3A1A 0%, #0F582C 100%);
+            color: white;
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            box-shadow: var(--shadow-xl);
+            z-index: 1000;
+            border-bottom: 3px solid var(--gold-accent);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-icon {
+            width: 90px;
+            height: 90px;
+            background: rgb(3, 53, 3);
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            color: #ff0000;
+        }
+        .logo-text p {
+            font-size: 0.65rem;
+            font-weight: 500;
+            opacity: 0.85;
+        }
+
+        .stats-badge {
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(12px);
+            padding: 7px 22px;
+            border-radius: 80px;
+            display: flex;
+            gap: 22px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .btn-location {
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 7px 16px;
+            border-radius: 44px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            color: white;
+            cursor: pointer;
+        }
+        .btn-location:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+
+        .clinic-tabs {
+            background: var(--card-bg);
+            padding: 12px 28px;
+            display: flex;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-light);
+            overflow-x: auto;
+        }
+
+        .clinic-tab {
+            padding: 8px 22px;
+            border-radius: 44px;
+            background: #F1F5F9;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: all 0.25s ease;
+        }
+        .clinic-tab.active {
+            background: var(--primary-strong);
+            color: white;
+            box-shadow: 0 6px 14px rgba(34,139,76,0.3);
+        }
+        .clinic-tab.derma.active { background: #C4458C; }
+
+        .control-panel {
+            background: white;
+            padding: 14px 28px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: flex-end;
+            border-bottom: 1px solid #E9EDF2;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+            min-width: 140px;
+        }
+        .input-group label {
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            color: #43615C;
+        }
+        input, select {
+            padding: 9px 14px;
+            border-radius: 16px;
+            border: 1.5px solid #E2E8F0;
+            font-family: 'Satoshi', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: #FFFFFF;
+        }
+        input:focus, select:focus { border-color: var(--primary-strong); outline: none; }
+
+        .btn {
+            padding: 9px 22px;
+            border-radius: 44px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(105deg, var(--primary-strong), #0D4A2A);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.05); }
+
+        #map {
+            flex: 1;
+            width: 100%;
+            z-index: 1;
+            background: #cbd5e0;
+        }
+
+        .info-sidebar {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 420px;
+            max-width: calc(100vw - 40px);
+            background: rgba(255, 255, 250, 0.97);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            box-shadow: var(--shadow-xl);
+            z-index: 1100;
+            overflow: hidden;
+            border: 1px solid rgba(245, 176, 66, 0.3);
+        }
+        .sidebar-header {
+            background: linear-gradient(115deg, #136B36, #0A4A24);
+            padding: 14px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .facility-list-container {
+            max-height: 50vh;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .facility-card {
+            background: rgba(255,255,245,0.9);
+            border-radius: 24px;
+            padding: 14px;
+            margin-bottom: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 5px solid;
+        }
+        .facility-card:hover { transform: translateX(-6px); background: white; box-shadow: var(--shadow-md); }
+        .facility-card.poultry { border-left-color: #F39C12; }
+        .facility-card.piggery { border-left-color: #E67E22; }
+        .facility-card.layer { border-left-color: #27AE60; }
+        .facility-card.derma { border-left-color: #C4458C; }
+
+        .distance-badge {
+            background: var(--primary-strong);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+        .route-btn-mini {
+            background: #E53E3E;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .toast-notification {
+            position: fixed;
+            bottom: 28px;
+            left: 28px;
+            background: #1E2A2A;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            z-index: 9999;
+            box-shadow: var(--shadow-lg);
+        }
+
+        @media (max-width: 780px) {
+            .control-panel { flex-direction: column; align-items: stretch; }
+            .info-sidebar { width: calc(100vw - 24px); right: 12px; bottom: 12px; left: 12px; }
+            .stats-badge { display: none; }
+            .logo-text h1 { font-size: 1.1rem; }
+        }
+        
+        .sync-status {
+            font-size: 0.7rem;
+            background: rgba(0,0,0,0.5);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-left: 10px;
+        }
+        
+        .leaflet-div-icon {
+            background: transparent !important;
+            border: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="crfs-header">
+    <div class="logo-area">
+        <div class="logo-icon">
+            <img src="https://static.wixstatic.com/media/d6c0df_28302e9412774911aa1f9aff7536693b~mv2.png/v1/crop/x_240,y_447,w_960,h_953/fill/w_83,h_82,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/d6c0df_28302e9412774911aa1f9aff7536693b~mv2.png" alt="CRFS Logo">
+        </div>
+        <div class="logo-text">
+            <h1>CRFS TRADING</h1>
+            <p>Dela Costa homes 6, Santa Maria, Bulacan | farm tracer</p>
+        </div>
+    </div>
+    <div class="stats-badge">
+        <span><i class="fas fa-tractor"></i> <span id="totalFarmsCount">0</span> Farms</span>
+        <span><i class="fas fa-capsules"></i> <span id="totalClinicsCount">0</span> Clinics</span>
+        <span><i class="fas fa-route"></i> <span id="routeStatus">Active</span></span>
+        <span class="sync-status" id="syncStatus"><i class="fas fa-database"></i> Local</span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button class="btn-location" onclick="window.useMyLocation()"><i class="fas fa-location-dot"></i> My GPS</button>
+        <button class="btn-location" onclick="window.clearSelectedPin()"><i class="fas fa-eraser"></i> Clear Pin</button>
+        <button class="btn-location" onclick="window.syncFromSupabase()"><i class="fas fa-cloud-upload-alt"></i> Sync</button>
+    </div>
+</div>
+
+<div class="clinic-tabs">
+    <button class="clinic-tab active" data-type="all" onclick="window.filterByType('all')"><i class="fas fa-compass"></i> All</button>
+    <button class="clinic-tab" data-type="poultry" onclick="window.filterByType('poultry')"><i class="fas fa-drumstick-bite"></i> Poultry 🐔</button>
+    <button class="clinic-tab" data-type="piggery" onclick="window.filterByType('piggery')"><i class="fas fa-piggy-bank"></i> Piggery 🐷</button>
+    <button class="clinic-tab" data-type="layer" onclick="window.filterByType('layer')"><i class="fas fa-egg"></i> Layer 🥚</button>
+    <button class="clinic-tab derma" data-type="derma" onclick="window.filterByType('derma')"><i class="fas fa-capsules"></i> Derma 💊</button>
+</div>
+
+<div class="control-panel">
+    <div class="input-group"><label><i class="fas fa-building"></i> FARM NAME</label><input type="text" id="facilityName" placeholder="e.g., San Vicente Poultry"></div>
+    <div class="input-group"><label><i class="fas fa-location-dot"></i> ADDRESS</label><input type="text" id="locationInput" placeholder="Dela Costa 6, Santa Maria"></div>
+    <div class="input-group"><label><i class="fas fa-tag"></i> TYPE</label><select id="facilityType"><option value="farm-poultry">🐔 Poultry Farm</option><option value="farm-piggery">🐷 Piggery Farm</option><option value="farm-layer">🥚 Layer Farm</option><option value="clinic-derma">💊 Derma Clinic</option></select></div>
+    <div class="input-group"><label><i class="fas fa-user"></i> OWNER</label><input type="text" id="ownerName" placeholder="Full name"></div>
+    <div class="input-group"><label><i class="fas fa-phone"></i> CONTACT</label><input type="text" id="contactNumber" placeholder="+63 9xx xxx xxxx"></div>
+    <div class="input-group"><label><i class="fas fa-calendar"></i> SCHEDULE</label><input type="text" id="scheduleTime" placeholder="Mon-Fri 8am-5pm"></div>
+    <button class="btn btn-primary" onclick="window.addFacility()"><i class="fas fa-plus-circle"></i> Register</button>
+    <button class="btn btn-primary" onclick="window.drawRouteToAllFarms()" style="background:#C4452C;"><i class="fas fa-map-marked-alt"></i> Smart Route</button>
+</div>
+
+<div id="map"></div>
+
+<div class="info-sidebar" id="infoSidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-warehouse"></i> CRFS · Dela Costa homes 6 Command Center</h3>
+        <button onclick="window.toggleSidebar()" style="background:transparent; border:none; color:white; font-size:1.2rem; cursor:pointer;"><i class="fas fa-minus-circle"></i></button>
+    </div>
+    <div id="facilityListContainer" class="facility-list-container"></div>
+</div>
+
+<script>
+    // ==================== HQ LOCATION: DELA COSTA 6 ====================
+    const HQ_LOCATION = { lat: 14.8112, lng: 121.0150, name: "CRFS TRADING HQ", address: "Dela Costa homes 6,San Vicente, Santa Maria, Bulacan" };
+    
+    // ==================== SUPABASE CONFIGURATION (ONLINE/OFFLINE READY) ====================
+    const SUPABASE_URL = 'https://maqoaywasttcprdmtjem.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_PTfGz0-AcuYw3KyygYRUZg_nVZvXyAB';
+    let supabaseClient = null;
+    
+    // Initialize Supabase client with error handling
+    try {
+        if (typeof supabase !== 'undefined' && supabase && supabase.createClient) {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("✅ Supabase client initialized");
+        }
+    } catch (e) {
+        console.warn("⚠️ Supabase initialization failed:", e.message);
+        supabaseClient = null;
+    }
+
+    // ==================== GLOBAL VARIABLES ====================
+    let facilities = [];      // Will be loaded from Supabase only
+    let map = null;
+    let markers = [];
+    let currentRouteControl = null;
+    let currentTypeFilter = "all";
+    let selectedLatLng = null;
+    let tempMarker = null;
+    let isMapReady = false;
+    
+    // Helper: emoji mapping
+    function getEmojiFromType(type) {
+        if (type === 'farm-poultry') return '🐔';
+        if (type === 'farm-piggery') return '🐷';
+        if (type === 'farm-layer') return '🥚';
+        if (type === 'clinic-derma') return '💊';
+        return '📍';
+    }
+    
+    // ==================== MAP INITIALIZATION ====================
+    function initMap() {
+        console.log("🗺️ Initializing map...");
+        const mapContainer = document.getElementById('map');
+        if (!mapContainer) {
+            console.error("❌ Map container missing!");
+            return;
+        }
+        
+        map = L.map('map').setView([HQ_LOCATION.lat, HQ_LOCATION.lng], 15);
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> & CartoDB',
+            subdomains: 'abcd',
+            maxZoom: 19,
+            minZoom: 12
+        }).addTo(map);
+        
+        L.control.scale({ metric: true, position: 'bottomleft' }).addTo(map);
+        
+        // Click handler for pin placement
+        map.on('click', (e) => {
+            selectedLatLng = e.latlng;
+            if (tempMarker) map.removeLayer(tempMarker);
+            tempMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+                icon: L.divIcon({ html: '<div style="font-size: 42px; filter: drop-shadow(0 2px 6px black);">📍</div>', iconSize: [36,36] })
+            }).addTo(map).bindPopup("📍 Pin dropped — Ready to register").openPopup();
+            showToast("📍 Pin placed! Complete the form.");
+        });
+        
+        // HQ Marker at Dela Costa 6
+        const hqIcon = L.divIcon({ 
+            html: '<div style="font-size: 52px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));">🏭</div>', 
+            iconSize: [52,52] 
+        });
+        L.marker([HQ_LOCATION.lat, HQ_LOCATION.lng], { icon: hqIcon }).addTo(map)
+            .bindTooltip('🏭 CRFS TRADING Headquarters - Dela Costa homes 6', { permanent: false })
+            .bindPopup('<b>🏭 CRFS TRADING</b><br>Dela Costa 6, Santa Maria, Bulacan<br><i>Main Operations Hub</i>');
+        
+        isMapReady = true;
+        console.log("✅ Map fully initialized");
+        
+        // Force invalidate size after delay
+        setTimeout(() => { if (map) map.invalidateSize(); }, 300);
+        
+        // Load data from Supabase (no local defaults)
+        loadFromSupabase();
+        
+        window.addEventListener('resize', () => { if (map) setTimeout(() => map.invalidateSize(), 120); });
+    }
+    
+    // ==================== LOAD FROM SUPABASE ONLY (NO LOCAL DEFAULTS) ====================
+    async function loadFromSupabase() {
+        if (!supabaseClient) {
+            updateSyncStatus('offline', 'Offline');
+            facilities = [];
+            renderAll();
+            showToast("⚠️ Offline mode - cannot load data");
+            return;
+        }
+        
+        updateSyncStatus('loading', 'Loading...');
+        
+        try {
+            const { data, error } = await supabaseClient
+                .from('farms')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .timeout(8000);
+            
+            if (error) throw error;
+            
+            if (data && data.length > 0) {
+                facilities = data.map(item => ({
+                    id: item.id,
+                    name: item.name || 'Unnamed',
+                    locationRaw: item.address || 'No address',
+                    facilityType: item.farm_type || 'farm-poultry',
+                    icon: getEmojiFromType(item.farm_type || 'farm-poultry'),
+                    coordinates: [item.latitude, item.longitude],
+                    ownerName: item.owner_name || 'Not specified',
+                    contactNumber: item.contact_number || 'N/A',
+                    scheduleTime: item.schedule || 'By appointment'
+                }));
+                updateSyncStatus('online', `${facilities.length} records`);
+                showToast(`📦 Loaded ${facilities.length} facilities from cloud`);
+            } else {
+                facilities = [];
+                updateSyncStatus('online', 'No data');
+                showToast("📭 No facilities found. Add your first farm!");
+            }
+            
+            renderAll();
+            
+        } catch (err) {
+            console.error('Supabase load error:', err);
+            facilities = [];
+            updateSyncStatus('offline', 'Offline');
+            renderAll();
+            showToast("⚠️ Cannot connect to server. Using offline data if available.");
+        }
+    }
+    
+    async function syncFromSupabase() {
+        showToast("🔄 Syncing from cloud...");
+        await loadFromSupabase();
+    }
+    
+    async function saveToSupabase(farmData) {
+        if (!supabaseClient) return false;
+        try {
+            const { error } = await supabaseClient
+                .from('farms')
+                .insert([{
+                    id: farmData.id,
+                    name: farmData.name,
+                    address: farmData.locationRaw,
+                    farm_type: farmData.facilityType,
+                    latitude: farmData.coordinates[0],
+                    longitude: farmData.coordinates[1],
+                    owner_name: farmData.ownerName,
+                    contact_number: farmData.contactNumber,
+                    schedule: farmData.scheduleTime,
+                    created_at: new Date().toISOString()
+                }]);
+            if (error) throw error;
+            return true;
+        } catch (err) {
+            console.warn('Save error:', err);
+            return false;
+        }
+    }
+    
+    async function deleteFromSupabase(id) {
+        if (!supabaseClient) return false;
+        try {
+            await supabaseClient.from('farms').delete().eq('id', id);
+            return true;
+        } catch (err) { return false; }
+    }
+    
+    function updateSyncStatus(status, text) {
+        const el = document.getElementById('syncStatus');
+        if (!el) return;
+        if (status === 'online') {
+            el.innerHTML = `<i class="fas fa-cloud"></i> ${text}`;
+        } else if (status === 'loading') {
+            el.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${text}`;
+        } else {
+            el.innerHTML = `<i class="fas fa-cloud-off"></i> ${text}`;
+        }
+    }
+    
+    // ==================== MAP MARKER FUNCTIONS ====================
+    function getMarkerIcon(facility) {
+        let emoji = "📍";
+        if (facility.facilityType === 'farm-poultry') emoji = "🐔";
+        else if (facility.facilityType === 'farm-piggery') emoji = "🐷";
+        else if (facility.facilityType === 'farm-layer') emoji = "🥚";
+        else if (facility.facilityType === 'clinic-derma') emoji = "💊";
+        return L.divIcon({
+            html: `<div style="font-size: 36px; line-height: 1; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));">${emoji}</div>`,
+            iconSize: [38, 38],
+            popupAnchor: [0, -16]
+        });
+    }
+    
+    function renderMapMarkers() {
+        if (!map) return;
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+        
+        getFilteredFacilities().forEach(f => {
+            const m = L.marker(f.coordinates, { icon: getMarkerIcon(f) }).addTo(map);
+            m.bindPopup(`
+                <div style="font-family: 'Satoshi', sans-serif; min-width: 190px;">
+                    <b style="font-size:0.95rem;">${f.icon} ${f.name}</b><br>
+                    📍 ${f.locationRaw}<br>👤 ${f.ownerName}<br>📞 ${f.contactNumber}<br>🕒 ${f.scheduleTime}<br>
+                    <button onclick="window.flyTo(${f.id})" style="background:#228B4C; border:none; color:white; border-radius:30px; padding:5px 14px; margin-top:6px;">Focus</button>
+                </div>
+            `);
+            markers.push(m);
+        });
+    }
+    
+    // ==================== FACILITY CRUD ====================
+    async function addFacility() {
+        const name = document.getElementById('facilityName').value.trim();
+        const locRaw = document.getElementById('locationInput').value.trim();
+        const typeCode = document.getElementById('facilityType').value;
+        const owner = document.getElementById('ownerName').value.trim();
+        const contact = document.getElementById('contactNumber').value.trim();
+        const sched = document.getElementById('scheduleTime').value.trim();
+        
+        if (!name) { showToast("⚠️ Facility name required"); return; }
+        
+        let coords = null;
+        if (selectedLatLng) {
+            coords = [selectedLatLng.lat, selectedLatLng.lng];
+        } else if (locRaw) {
+            showToast("🔍 Geocoding...");
+            const geo = await geocodeLocation(locRaw);
+            if (geo) coords = [geo.lat, geo.lng];
+        }
+        
+        if (!coords) {
+            alert("❌ Tap on map to drop a pin, or enter a valid address.");
+            return;
+        }
+        
+        const newId = Date.now();
+        const newFacility = {
+            id: newId,
+            name: name,
+            locationRaw: locRaw || "Pinned location",
+            facilityType: typeCode,
+            icon: getEmojiFromType(typeCode),
+            coordinates: coords,
+            ownerName: owner || 'Unspecified',
+            contactNumber: contact || 'N/A',
+            scheduleTime: sched || 'By appointment'
+        };
+        
+        const saved = await saveToSupabase(newFacility);
+        if (saved) {
+            facilities.unshift(newFacility);
+            renderAll();
+            map.flyTo(coords, 15);
+            if (tempMarker) map.removeLayer(tempMarker);
+            selectedLatLng = null;
+            
+            document.getElementById('facilityName').value = '';
+            document.getElementById('locationInput').value = '';
+            document.getElementById('ownerName').value = '';
+            document.getElementById('contactNumber').value = '';
+            document.getElementById('scheduleTime').value = '';
+            
+            showToast(`✅ ${name} registered!`);
+        } else {
+            showToast("❌ Failed to save. Check connection.");
+        }
+    }
+    
+    async function deleteFacility(id) {
+        if (confirm("Remove this facility?")) {
+            const deleted = await deleteFromSupabase(id);
+            if (deleted) {
+                facilities = facilities.filter(f => f.id !== id);
+                renderAll();
+                if (currentRouteControl) { map.removeControl(currentRouteControl); currentRouteControl = null; }
+                showToast("🗑️ Removed");
+            } else {
+                showToast("❌ Delete failed");
+            }
+        }
+    }
+    
+    async function geocodeLocation(locationText) {
+        try {
+            const q = `${locationText}, Santa Maria, Bulacan, Philippines`;
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`);
+            const data = await res.json();
+            if (data?.length) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+        } catch(e) {}
+        return null;
+    }
+    
+    function getFilteredFacilities() {
+        if (currentTypeFilter === 'poultry') return facilities.filter(f => f.facilityType === 'farm-poultry');
+        if (currentTypeFilter === 'piggery') return facilities.filter(f => f.facilityType === 'farm-piggery');
+        if (currentTypeFilter === 'layer') return facilities.filter(f => f.facilityType === 'farm-layer');
+        if (currentTypeFilter === 'derma') return facilities.filter(f => f.facilityType === 'clinic-derma');
+        return facilities;
+    }
+    
+    function renderFacilityList() {
+        const container = document.getElementById('facilityListContainer');
+        const filtered = getFilteredFacilities();
+        
+        if (!filtered.length) {
+            container.innerHTML = `
+                <div style="padding:2rem;text-align:center;">
+                    <i class="fas fa-map-pin fa-2x" style="opacity:0.5;"></i>
+                    <p style="margin-top:12px;">No facilities yet</p>
+                    <p style="font-size:0.7rem;">Tap map to drop a pin and register</p>
+                    <button onclick="window.syncFromSupabase()" style="margin-top:12px; background:#228B4C; border:none; padding:8px 20px; border-radius:30px; color:white;">Refresh</button>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `<div style="background:#FDF8E7; border-radius:28px; padding:14px; margin-bottom:16px; text-align:center;">
+            <strong>🏭 CRFS TRADING HQ</strong><br>📍 Dela Costa 6, Santa Maria, Bulacan<br>
+            <button class="route-btn-mini" onclick="window.drawRouteToAllFarms()"><i class="fas fa-route"></i> Smart Trace Route</button>
+            ${selectedLatLng ? '<div style="margin-top:8px;">📍 PIN READY</div>' : ''}
+        </div>`;
+        
+        filtered.forEach(f => {
+            const dist = calcDistance(HQ_LOCATION.lat, HQ_LOCATION.lng, f.coordinates[0], f.coordinates[1]).toFixed(1);
+            let typeClass = f.facilityType.includes('poultry') ? 'poultry' : f.facilityType.includes('piggery') ? 'piggery' : f.facilityType.includes('layer') ? 'layer' : 'derma';
+            html += `
+                <div class="facility-card ${typeClass}" onclick="window.flyTo(${f.id})">
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong><span style="font-size:1.3rem;">${f.icon}</span> ${f.name}</strong>
+                        <span class="distance-badge">${dist} km</span>
+                    </div>
+                    <div style="font-size:0.75rem; margin:6px 0;"><i class="fas fa-location-dot"></i> ${f.locationRaw}</div>
+                    <div><i class="fas fa-user"></i> ${f.ownerName} · <i class="fas fa-phone"></i> ${f.contactNumber}</div>
+                    <div><i class="far fa-clock"></i> ${f.scheduleTime}</div>
+                    <div style="margin-top:8px;">
+                        <button onclick="event.stopPropagation(); window.deleteFacility(${f.id})" style="background:#B53B2E; border:none; color:white; border-radius:40px; padding:4px 12px;">🗑️ Delete</button>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+    
+    function drawRouteToAllFarms() {
+        if (currentRouteControl) map.removeControl(currentRouteControl);
+        const farmPoints = facilities.filter(f => f.facilityType.startsWith('farm'));
+        if (!farmPoints.length) { showToast("Add farms first"); return; }
+        const waypoints = [L.latLng(HQ_LOCATION.lat, HQ_LOCATION.lng), ...farmPoints.map(f => L.latLng(f.coordinates[0], f.coordinates[1]))];
+        currentRouteControl = L.Routing.control({
+            waypoints, routeWhileDragging: false, show: false,
+            lineOptions: { styles: [{ color: '#E53E3E', weight: 6, opacity: 0.9 }], extendToWaypoints: true },
+            createMarker: () => null, addWaypoints: false, fitSelectedRoutes: true
+        }).addTo(map);
+        currentRouteControl.on('routesfound', (e) => {
+            const totalKm = (e.routes[0].summary.totalDistance / 1000).toFixed(1);
+            showToast(`🚜 Route: ${farmPoints.length} farms | ${totalKm} km`);
+            document.getElementById('routeStatus').innerHTML = `${totalKm}km`;
+        });
+        map.fitBounds(L.latLngBounds(waypoints), { padding: [45,45] });
+    }
+    
+    function flyTo(id) { 
+        const f = facilities.find(f => f.id === id); 
+        if (f && map) map.flyTo(f.coordinates, 16.8, { duration: 1.1 }); 
+    }
+    
+    function filterByType(type) { 
+        currentTypeFilter = type; 
+        document.querySelectorAll('.clinic-tab').forEach(t => t.classList.remove('active')); 
+        document.querySelector(`.clinic-tab[data-type="${type}"]`)?.classList.add('active'); 
+        renderAll(); 
+        if (currentRouteControl) { map.removeControl(currentRouteControl); currentRouteControl = null; } 
+        document.getElementById('routeStatus').innerHTML = 'Active'; 
+    }
+    
+    function useMyLocation() { 
+        if (!navigator.geolocation) return alert("Geolocation unavailable"); 
+        navigator.geolocation.getCurrentPosition(pos => { 
+            const { latitude: lat, longitude: lng } = pos.coords; 
+            selectedLatLng = { lat, lng }; 
+            if (tempMarker) map.removeLayer(tempMarker); 
+            tempMarker = L.marker([lat, lng], { icon: L.divIcon({ html: '<div style="font-size:42px;">📍</div>', iconSize: [36,36] }) }).addTo(map).bindPopup("📍 Your GPS location").openPopup(); 
+            map.setView([lat, lng], 16); 
+            showToast("GPS locked"); 
+        }, () => alert("Location access denied")); 
+    }
+    
+    function clearSelectedPin() { 
+        selectedLatLng = null; 
+        if (tempMarker) map.removeLayer(tempMarker); 
+        tempMarker = null; 
+        showToast("Pin cleared"); 
+    }
+    
+    function calcDistance(lat1, lng1, lat2, lng2) { 
+        const R = 6371; 
+        const dLat = (lat2 - lat1) * Math.PI / 180; 
+        const dLng = (lng2 - lng1) * Math.PI / 180; 
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLng/2)**2; 
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    }
+    
+    function renderAll() { 
+        if (!isMapReady) return;
+        renderMapMarkers(); 
+        renderFacilityList(); 
+        updateStats(); 
+    }
+    
+    function updateStats() { 
+        document.getElementById('totalFarmsCount').innerText = facilities.filter(f => f.facilityType.startsWith('farm')).length; 
+        document.getElementById('totalClinicsCount').innerText = facilities.filter(f => f.facilityType === 'clinic-derma').length; 
+    }
+    
+    function showToast(msg) { 
+        const t = document.createElement('div'); 
+        t.className = 'toast-notification'; 
+        t.innerHTML = `<i class="fas fa-check-circle"></i> ${msg}`; 
+        document.body.appendChild(t); 
+        setTimeout(() => t.remove(), 3000); 
+    }
+    
+    function toggleSidebar() { 
+        const sb = document.getElementById('infoSidebar'); 
+        sb.style.display = sb.style.display === 'none' ? 'block' : 'none'; 
+    }
+    
+    // Expose globally
+    window.addFacility = addFacility;
+    window.deleteFacility = deleteFacility;
+    window.flyTo = flyTo;
+    window.filterByType = filterByType;
+    window.drawRouteToAllFarms = drawRouteToAllFarms;
+    window.useMyLocation = useMyLocation;
+    window.clearSelectedPin = clearSelectedPin;
+    window.toggleSidebar = toggleSidebar;
+    window.syncFromSupabase = syncFromSupabase;
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log("🚀 DOM Ready — Initializing Map...");
+        initMap();
+    });
+</script>
+</body>
+</html>
